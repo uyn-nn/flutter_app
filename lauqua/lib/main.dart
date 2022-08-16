@@ -201,7 +201,6 @@ class HomePageState extends State<HomePage> {
 
   Widget buildTask(int index) {
     final task = tasks[index];
-
     return ListTile(
       key: ValueKey(index),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
