@@ -1,5 +1,6 @@
 // ignore: avoid_web_libraries_in_flutter
-// ignore_for_file: deprecated_member_use, non_constant_identifier_names
+
+// ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -31,10 +32,10 @@ class HomePage extends StatefulWidget {
 
   @override
   // ignore: library_private_types_in_public_api
-  _HomePageState createState() => _HomePageState();
+  HomePageState createState() => HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class HomePageState extends State<HomePage> {
   List<Task> tasks = [];
   List<Task> displayedTasks = [];
   String currentStatus = 'all';
@@ -47,8 +48,15 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final IncompleteTasks = tasks.where((element) => !element.status).toList();
-    final CompleteTasks = tasks.where((element) => element.status).toList();
+    final allTaskIndexes = tasks.map((e) => tasks.indexOf(e)).toList();
+    final incompleteTaskIndexes = tasks
+        .where((element) => !element.status)
+        .map((e) => tasks.indexOf(e))
+        .toList();
+    final completeTasksIndexes = tasks
+        .where((element) => element.status)
+        .map((e) => tasks.indexOf(e))
+        .toList();
 
     return DefaultTabController(
       length: 3,
@@ -84,7 +92,7 @@ class _HomePageState extends State<HomePage> {
         body: TabBarView(
           children: [
             ReorderableListView.builder(
-              itemCount: tasks.length,
+              itemCount: allTaskIndexes.length,
               onReorder: (oldIndex, newIndex) => setState(() {
                 final index = newIndex > oldIndex ? newIndex - 1 : newIndex;
                 final task = tasks.removeAt(oldIndex);
@@ -92,31 +100,35 @@ class _HomePageState extends State<HomePage> {
               }),
               itemBuilder: (context, index) {
                 //final task = tasks[index];
-                return buildTask(index, tasks);
+                return buildTask(allTaskIndexes[index]);
               },
             ),
             ReorderableListView.builder(
-              itemCount: IncompleteTasks.length,
+              itemCount: incompleteTaskIndexes.length,
               onReorder: (oldIndex, newIndex) => setState(() {
+                oldIndex = incompleteTaskIndexes[oldIndex];
+                newIndex = incompleteTaskIndexes[newIndex];
                 final index = newIndex > oldIndex ? newIndex - 1 : newIndex;
-                final task = IncompleteTasks.removeAt(oldIndex);
-                IncompleteTasks.insert(index, task);
-              }),
-              itemBuilder: (context, index) {
-                //final task = IncompleteTasks[index];
-                return buildTask(index, IncompleteTasks);
-              },
-            ),
-            ReorderableListView.builder(
-              itemCount: CompleteTasks.length,
-              onReorder: (oldIndex, newIndex) => setState(() {
-                final index = newIndex > oldIndex ? newIndex - 1 : newIndex;
-                final task = CompleteTasks.removeAt(oldIndex);
-                CompleteTasks.insert(index, task);
+                final task = tasks.removeAt(oldIndex);
+                tasks.insert(index, task);
               }),
               itemBuilder: (context, index) {
                 //final task = CompleteTasks[index];
-                return buildTask(index, CompleteTasks);
+                return buildTask(incompleteTaskIndexes[index]);
+              },
+            ),
+            ReorderableListView.builder(
+              itemCount: completeTasksIndexes.length,
+              onReorder: (oldIndex, newIndex) => setState(() {
+                oldIndex = completeTasksIndexes[oldIndex];
+                newIndex = completeTasksIndexes[newIndex];
+                final index = newIndex > oldIndex ? newIndex - 1 : newIndex;
+                final task = tasks.removeAt(oldIndex);
+                tasks.insert(index, task);
+              }),
+              itemBuilder: (context, index) {
+                //final task = IncompleteTasks[index];
+                return buildTask(completeTasksIndexes[index]);
               },
             ),
           ],
@@ -187,7 +199,7 @@ class _HomePageState extends State<HomePage> {
   //   );
   // }
 
-  Widget buildTask(int index, List<Task> tasks) {
+  Widget buildTask(int index) {
     final task = tasks[index];
 
     return ListTile(
