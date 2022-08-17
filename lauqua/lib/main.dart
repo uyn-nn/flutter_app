@@ -1,12 +1,21 @@
-// ignore: avoid_web_libraries_in_flutter
 
-// ignore_for_file: deprecated_member_use
+//import 'dart:html';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-Future main() async {
+// async dùng để khai báo một hàm bất đồng bộ,
+// các hàm bất đồng bộ sẽ luôn trả về một giá trị
+// việc sử dụng async chỉ đơn giản là ngụ ý rằng một lời hứa sẽ trả lại
+// và nếu một lời hứa không được trả lại thì JS sẽ tự động kết thúc nó
+void main() async {
+  // đây là hàm nội bộ nên phải gọi setPreferredOrientations()
+  // trước khi gọi runApp() nên ta dùng:
   WidgetsFlutterBinding.ensureInitialized();
+  // await sử dụng để chờ một promise, chỉ được sử dụng bên trong 1 khối async(hàm không đồng bộ)
+  // từ khóa await làm cho JS đợi cho đến khi promise trả về kết quả
+
+  // thiết lập các hướng ưu tiên, sau khi nó hoàn thành thì ta chạy ứng dụng của mình
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
@@ -20,11 +29,12 @@ class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) => MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: title,
-        theme: ThemeData(primarySwatch: Colors.indigo),
-        home: const HomePage(),
-      );
+    // xóa nhãn debug trên màn hình ứng dụng
+    debugShowCheckedModeBanner: false,
+    title: title,
+    theme: ThemeData(primarySwatch: Colors.indigo),
+    home: const HomePage(),
+  );
 }
 
 class HomePage extends StatefulWidget {
@@ -36,7 +46,17 @@ class HomePage extends StatefulWidget {
 }
 
 class HomePageState extends State<HomePage> {
-  List<Task> tasks = [];
+  List<Task> tasks = [
+    Task(content: 'Write small apps', status: false),
+    Task(content: 'Make todo list', status: true),
+    Task(content: 'Commit changes and push to Github', status: false),
+    Task(content: 'Blog writing', status: false),
+    Task(content: 'Watch movie', status: false),
+    Task(content: 'Credit registration', status: false),
+    Task(content: 'Check CTMS', status: true),
+    Task(content: 'Buy food', status: false),
+    Task(content: 'Update calendar', status: true),
+  ];
   List<Task> displayedTasks = [];
   String currentStatus = 'all';
   bool isChecked = false;
@@ -49,7 +69,8 @@ class HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final allTaskIndexes = tasks.map((e) => tasks.indexOf(e)).toList();
-    final incompleteTaskIndexes = tasks
+    // js map
+    final List<int> incompleteTaskIndexes = tasks
         .where((element) => !element.status)
         .map((e) => tasks.indexOf(e))
         .toList();
@@ -94,40 +115,46 @@ class HomePageState extends State<HomePage> {
             ReorderableListView.builder(
               itemCount: allTaskIndexes.length,
               onReorder: (oldIndex, newIndex) => setState(() {
-                final index = newIndex > oldIndex ? newIndex - 1 : newIndex;
-                final task = tasks.removeAt(oldIndex);
-                tasks.insert(index, task);
+                if (newIndex < allTaskIndexes.length) {
+                  final index = newIndex > oldIndex ? newIndex - 1 : newIndex;
+                  final task = tasks.removeAt(oldIndex);
+                  tasks.insert(index, task);
+                }
               }),
               itemBuilder: (context, index) {
-                //final task = tasks[index];
+                // final task = tasks[index];
                 return buildTask(allTaskIndexes[index]);
               },
             ),
             ReorderableListView.builder(
               itemCount: incompleteTaskIndexes.length,
               onReorder: (oldIndex, newIndex) => setState(() {
-                oldIndex = incompleteTaskIndexes[oldIndex];
-                newIndex = incompleteTaskIndexes[newIndex];
-                final index = newIndex > oldIndex ? newIndex - 1 : newIndex;
-                final task = tasks.removeAt(oldIndex);
-                tasks.insert(index, task);
+                if (newIndex < incompleteTaskIndexes.length) {
+                  oldIndex = incompleteTaskIndexes[oldIndex];
+                  newIndex = incompleteTaskIndexes[newIndex];
+                  final index = newIndex > oldIndex ? newIndex - 1 : newIndex;
+                  final task = tasks.removeAt(oldIndex);
+                  tasks.insert(index, task);
+                }
               }),
               itemBuilder: (context, index) {
-                //final task = CompleteTasks[index];
+                // final task = CompleteTasks[index];
                 return buildTask(incompleteTaskIndexes[index]);
               },
             ),
             ReorderableListView.builder(
               itemCount: completeTasksIndexes.length,
               onReorder: (oldIndex, newIndex) => setState(() {
-                oldIndex = completeTasksIndexes[oldIndex];
-                newIndex = completeTasksIndexes[newIndex];
-                final index = newIndex > oldIndex ? newIndex - 1 : newIndex;
-                final task = tasks.removeAt(oldIndex);
-                tasks.insert(index, task);
+                if (newIndex < completeTasksIndexes.length) {
+                  oldIndex = completeTasksIndexes[oldIndex];
+                  newIndex = completeTasksIndexes[newIndex];
+                  final index = newIndex > oldIndex ? newIndex - 1 : newIndex;
+                  final task = tasks.removeAt(oldIndex);
+                  tasks.insert(index, task);
+                }
               }),
               itemBuilder: (context, index) {
-                //final task = IncompleteTasks[index];
+                // final task = IncompleteTasks[index];
                 return buildTask(completeTasksIndexes[index]);
               },
             ),
@@ -163,7 +190,7 @@ class HomePageState extends State<HomePage> {
                           if (newTask.isNotEmpty) {
                             setState(() {
                               Task task =
-                                  Task(status: isChecked, content: newTask);
+                              Task(status: isChecked, content: newTask);
                               tasks.add(task);
                             });
                             Navigator.of(context).pop();
@@ -200,103 +227,130 @@ class HomePageState extends State<HomePage> {
   // }
 
   Widget buildTask(int index) {
-    final task = tasks[index];
+    //final task = tasks[index];
+    int taskIndex = tasks.indexOf(tasks[index]);
+
     return ListTile(
       key: ValueKey(index),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      contentPadding: const EdgeInsets.only(left: 10, right: 50),
       //title: Text(tasks.content),
       leading: Row(
         mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              Checkbox(
-                value: tasks[index].status,
-                checkColor: Colors.white,
-                activeColor: Colors.grey,
-                onChanged: (value) {
-                  setState(() {
-                    tasks[index].status = !tasks[index].status;
-                  });
-                },
-              ),
-              Text(
-                tasks[index].content.toString(),
-                style: TextStyle(
-                  decoration: tasks[index].status
-                      ? TextDecoration.lineThrough
-                      : TextDecoration.none,
-                ),
-              ),
-            ],
+          Checkbox(
+            value: tasks[index].status,
+            checkColor: Colors.white,
+            activeColor: Colors.grey,
+            onChanged: (value) {
+              setState(() {
+                tasks[index].status = !tasks[index].status;
+              });
+            },
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.edit, color: Colors.grey),
-                onPressed: () {
-                  showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8)),
-                          title: const Text('Edit Item'),
-                          content: TextFormField(
-                            initialValue: task.content,
-                            onFieldSubmitted: (_) =>
-                                Navigator.of(context).pop(),
-                            onChanged: (content) =>
-                                setState(() => task.content = content),
-                          ),
-                        );
-                      });
-                },
-              ),
-              IconButton(
-                icon: const Icon(
-                  Icons.delete,
-                  color: Colors.grey,
-                ),
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8)),
-                        title: const Text('Please Confirm'),
-                        content: const Text(
-                          'Are you sure to remove this item?',
-                          style: TextStyle(
-                            color: Colors.grey,
-                          ),
-                        ),
-                        actions: <Widget>[
-                          FlatButton(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                            child: const Text('Cancel'),
-                          ),
-                          FlatButton(
-                            onPressed: () {
-                              setState(() {
-                                tasks.removeAt(index);
-                              });
-                              Navigator.of(context).pop();
-                            },
-                            child: const Text('OK'),
-                          ),
-                        ],
-                      );
-                    },
+          Text(
+            tasks[index].content.toString(),
+            style: TextStyle(
+              decoration: tasks[index].status
+                  ? TextDecoration.lineThrough
+                  : TextDecoration.none,
+            ),
+          ),
+        ],
+      ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            icon: const Icon(
+              Icons.arrow_upward,
+              color: Colors.grey,
+            ),
+            onPressed: () {
+              setState(() {
+                if (taskIndex > 0) {
+                  var temp = tasks[taskIndex];
+                  tasks[taskIndex] = tasks[taskIndex - 1];
+                  tasks[taskIndex - 1] = temp;
+                }
+              });
+            },
+          ),
+          IconButton(
+            icon: const Icon(
+              Icons.arrow_downward,
+              color: Colors.grey,
+            ),
+            onPressed: () {
+              setState(() {
+                if (taskIndex < tasks.length - 1) {
+                  var temp = tasks[taskIndex];
+                  tasks[taskIndex] = tasks[taskIndex + 1];
+                  tasks[taskIndex + 1] = temp;
+                }
+              });
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.edit, color: Colors.grey),
+            onPressed: () {
+              showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
+                      title: const Text('Edit Item'),
+                      content: TextFormField(
+                          initialValue: tasks[index].content,
+                          onFieldSubmitted: (_) =>
+                              Navigator.of(context).pop(),
+                          onChanged: (content) {
+                            setState(() => tasks[index].content = content);
+                          }),
+                    );
+                  });
+            },
+          ),
+          IconButton(
+            icon: const Icon(
+              Icons.delete,
+              color: Colors.grey,
+            ),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
+                    title: const Text('Please Confirm'),
+                    content: const Text(
+                      'Are you sure to remove this item?',
+                      style: TextStyle(
+                        color: Colors.grey,
+                      ),
+                    ),
+                    actions: <Widget>[
+                      FlatButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text('Cancel'),
+                      ),
+                      FlatButton(
+                        onPressed: () {
+                          setState(() {
+                            tasks.removeAt(index);
+                          });
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text('OK'),
+                      ),
+                    ],
                   );
                 },
-              ),
-            ],
+              );
+            },
           ),
         ],
       ),
@@ -347,6 +401,7 @@ class ItemSearch extends SearchDelegate<Task> {
   @override
   Widget buildSuggestions(BuildContext context) {
     _filter = tasks.where((task) {
+      // trim() cắt các khoảng trắng(dấu cách, kí tự xuống dòng, dấu tab) ở 2 đầu của xâu
       return task.content.toLowerCase().contains(query.trim().toLowerCase());
     }).toList();
     return ListView.builder(
@@ -365,3 +420,5 @@ class Task {
   bool status;
   Task({required this.content, required this.status});
 }
+
+
