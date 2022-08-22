@@ -244,6 +244,13 @@ class HomePageState extends State<HomePage> {
             onChanged: (value) {
               setState(() {
                 tasks[index].status = !tasks[index].status;
+                //true
+                if (tasks[index].status) {
+                  tasks.add(tasks.removeAt(index));
+                } else {
+                  //day len vi tri 0
+                  tasks.insert(0, tasks.removeAt(index));
+                }
               });
             },
           ),
